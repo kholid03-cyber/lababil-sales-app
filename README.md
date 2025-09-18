@@ -1,5 +1,3 @@
-# lababil-sales-app
-sistem penjualan lababil
 # 🚀 Panduan Deploy Aplikasi Lababil Solution
 
 ## Langkah-Langkah Deploy ke Web
@@ -171,10 +169,16 @@ npm cache clean --force
 npm install
 ```
 
-### Error saat deploy
-- Pastikan semua file sudah di push ke GitHub
+### Error saat deploy Vercel
+**Error: "functions property cannot be used with builds property"**
+- Hapus file `vercel.json` atau gunakan versi sederhana
+- Vercel otomatis mendeteksi Next.js tanpa konfigurasi tambahan
+- Pastikan `package.json` ada dan benar
+
+**Error: Build failed**
 - Check build logs di Vercel Dashboard
-- Pastikan Node.js version compatible
+- Pastikan semua dependencies ter-install
+- Coba build lokal: `npm run build`
 
 ### App tidak jalan
 - Check browser console untuk error
