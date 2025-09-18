@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "name": "lababil-sales-app",
+  "builds": [
+    {
+      "src": "next.config.js",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "src/app/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
