@@ -1,30 +1,52 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Package, TrendingUp, Users, Plus, Edit, Trash2, Search, DollarSign, Calendar, BarChart3 } from 'lucide-react';
-
-// Simulasi Firebase (gunakan state lokal untuk demo)
-const mockData = {
-  products: [
-    { id: 1, name: 'Website Development', price: 5000000, stock: 10, category: 'Service' },
-    { id: 2, name: 'Mobile App Development', price: 8000000, stock: 5, category: 'Service' },
-    { id: 3, name: 'UI/UX Design', price: 3000000, stock: 15, category: 'Service' },
-    { id: 4, name: 'Digital Marketing', price: 2000000, stock: 20, category: 'Service' }
-  ],
-  sales: [
-    { id: 1, productId: 1, productName: 'Website Development', quantity: 1, total: 5000000, date: '2024-01-15', customer: 'PT ABC' },
-    { id: 2, productId: 2, productName: 'Mobile App Development', quantity: 1, total: 8000000, date: '2024-01-14', customer: 'CV XYZ' }
-  ]
-};
+import { 
+  getProducts, 
+  addProduct, 
+  updateProduct, 
+  deleteProduct,
+  getSales,
+  addSale,
+  deleteSale,
+  getProductById
+} from '../lib/firebaseOperations';
 
 export default function LababilSalesApp() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [products, setProducts] = useState(mockData.products);
-  const [sales, setSales] = useState(mockData.sales);
+  const [products, setProducts] = useState([]);
+  const [sales, setSales] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load data from Firebase on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [productsData, salesData] = await Promise.all([
+        getProducts(),
+        getSales()
+      ]);
+      
+      setProducts(productsData);
+      setSales(salesData);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setError('Gagal memuat data. Periksa koneksi internet Anda.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -41,50 +63,98 @@ export default function LababilSalesApp() {
   const averageOrderValue = totalSales > 0 ? totalRevenue / totalSales : 0;
 
   // Handle form submission
-  const handleSubmit = () => {
-    
-    if (modalType === 'product') {
-      if (editingItem) {
-        setProducts(products.map(p => p.id === editingItem.id ? { ...p, ...formData } : p));
-      } else {
-        const newProduct = {
-          id: Date.now(),
-          ...formData,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock)
-        };
-        setProducts([...products, newProduct]);
-      }
-    } else if (modalType === 'sale') {
-      const product = products.find(p => p.id === parseInt(formData.productId));
-      const newSale = {
-        id: Date.now(),
-        productId: product.id,
-        productName: product.name,
-        quantity: parseInt(formData.quantity),
-        total: product.price * parseInt(formData.quantity),
-        date: new Date().toISOString().split('T')[0],
-        customer: formData.customer
-      };
-      setSales([...sales, newSale]);
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
       
-      // Update stock
-      setProducts(products.map(p => 
-        p.id === product.id ? { ...p, stock: p.stock - parseInt(formData.quantity) } : p
-      ));
+      if (modalType === 'product') {
+        if (editingItem) {
+          // Update product
+          const updatedProduct = await updateProduct(editingItem.id, {
+            name: formData.name,
+            category: formData.category,
+            price: parseFloat(formData.price),
+            stock: parseInt(formData.stock)
+          });
+          
+          setProducts(products.map(p => 
+            p.id === editingItem.id ? updatedProduct : p
+          ));
+        } else {
+          // Add new product
+          const newProduct = await addProduct({
+            name: formData.name,
+            category: formData.category,
+            price: parseFloat(formData.price),
+            stock: parseInt(formData.stock)
+          });
+          
+          setProducts([...products, newProduct]);
+        }
+      } else if (modalType === 'sale') {
+        // Add new sale
+        const product = products.find(p => p.id === formData.productId);
+        if (!product) {
+          throw new Error('Product not found');
+        }
+        
+        const saleData = {
+          productId: product.id,
+          productName: product.name,
+          quantity: parseInt(formData.quantity),
+          total: product.price * parseInt(formData.quantity),
+          date: new Date().toISOString().split('T')[0],
+          customer: formData.customer
+        };
+        
+        const newSale = await addSale(saleData);
+        setSales([newSale, ...sales]);
+        
+        // Update product stock
+        const updatedProduct = await updateProduct(product.id, {
+          ...product,
+          stock: product.stock - parseInt(formData.quantity)
+        });
+        
+        setProducts(products.map(p => 
+          p.id === product.id ? updatedProduct : p
+        ));
+      }
+      
+      setShowModal(false);
+      setFormData({});
+      setEditingItem(null);
+      
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError('Gagal menyimpan data: ' + err.message);
+    } finally {
+      setLoading(false);
     }
-    
-    setShowModal(false);
-    setFormData({});
-    setEditingItem(null);
   };
 
   // Handle delete
-  const handleDelete = (type, id) => {
-    if (type === 'product') {
-      setProducts(products.filter(p => p.id !== id));
-    } else if (type === 'sale') {
-      setSales(sales.filter(s => s.id !== id));
+  const handleDelete = async (type, id) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus item ini?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      if (type === 'product') {
+        await deleteProduct(id);
+        setProducts(products.filter(p => p.id !== id));
+      } else if (type === 'sale') {
+        await deleteSale(id);
+        setSales(sales.filter(s => s.id !== id));
+      }
+      
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      setError('Gagal menghapus item: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,8 +176,32 @@ export default function LababilSalesApp() {
     sale.customer.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Loading state
+  if (loading && products.length === 0 && sales.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 mx-4 mt-4">
+          <div className="flex justify-between items-center">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900">
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,8 +212,13 @@ export default function LababilSalesApp() {
               </div>
               <h1 className="text-xl font-bold text-gray-900">Lababil Solution</h1>
             </div>
-            <div className="text-sm text-gray-500">
-              Sistem Penjualan Digital
+            <div className="flex items-center space-x-4">
+              {loading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              )}
+              <div className="text-sm text-gray-500">
+                Sistem Penjualan Digital
+              </div>
             </div>
           </div>
         </div>
