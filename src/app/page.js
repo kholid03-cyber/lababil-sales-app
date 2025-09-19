@@ -32,10 +32,10 @@ export default function LababilSalesApp() {
   // Company info for receipts
   const companyInfo = {
     companyName: 'Lababil Solution',
-    address: 'Jakarta, Indonesia',
-    phone: '+62 21-1234-5678',
-    email: 'info@lababilsolution.com',
-    website: 'www.lababilsolution.com'
+    address: 'Jambi, Indonesia',
+    phone: '+62 899-7499-994, +62 823-1223-5675',
+    email: 'lababil2307@gmail.com',
+    website: 'www.lababil.biz.id'
   };
 
   // Load data from Firebase on component mount
