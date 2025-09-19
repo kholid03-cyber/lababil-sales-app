@@ -39,20 +39,65 @@ export default function ReceiptModal({
         <div className="p-6">
           {/* Company Header */}
           <div className="text-center mb-8 pb-6 border-b-2 border-blue-600">
-            {/* Company Logo */}
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-              <svg width="32" height="32" viewBox="0 0 32 32" className="text-white">
-                {/* L Shape */}
-                <rect x="3" y="6" width="4" height="16" fill="currentColor"/>
-                <rect x="3" y="18" width="8" height="4" fill="currentColor"/>
-                {/* B Shape with camera lens */}
-                <rect x="14" y="6" width="4" height="16" fill="currentColor"/>
-                <rect x="14" y="6" width="8" height="4" fill="currentColor"/>
-                <rect x="14" y="12" width="6" height="3" fill="currentColor"/>
-                <rect x="14" y="18" width="8" height="4" fill="currentColor"/>
-                {/* Camera lens circle */}
-                <circle cx="26" cy="14" r="3" fill="none" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="26" cy="14" r="1.5" fill="currentColor"/>
+            {/* Company Logo - Updated with new L+B design */}
+            <div className="w-20 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+              <svg width="40" height="32" viewBox="0 0 400 300" className="text-white">
+                <defs>
+                  {/* Gradients for 3D effect */}
+                  <linearGradient id="blueGradReceipt" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="currentColor" stopOpacity="1" />
+                    <stop offset="50%" stopColor="currentColor" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="currentColor" stopOpacity="0.6" />
+                  </linearGradient>
+                  
+                  <linearGradient id="silverGradReceipt" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.9" />
+                    <stop offset="50%" stopColor="currentColor" stopOpacity="0.7" />
+                    <stop offset="100%" stopColor="currentColor" stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+                
+                {/* Letter L (3D Blue) - Outer structure */}
+                <path d="M50 50 L50 150 L150 150 L150 130 L70 130 L70 50 Z" fill="url(#blueGradReceipt)" stroke="currentColor" strokeWidth="1"/>
+                
+                {/* Letter B (3D Silver) - Inside the L */}
+                {/* Main vertical bar of B */}
+                <path d="M78 55 L78 115 L98 115 L98 55 Z" fill="url(#silverGradReceipt)"/>
+                
+                {/* Top horizontal section of B */}
+                <path d="M78 55 L118 55 Q125 55 125 65 Q125 72 120 75 Q115 77 110 77 L78 77 Z" fill="url(#silverGradReceipt)"/>
+                
+                {/* Middle divider */}
+                <path d="M78 77 L108 77 L108 83 L78 83 Z" fill="url(#silverGradReceipt)"/>
+                
+                {/* Bottom horizontal section of B */}
+                <path d="M78 83 L130 83 Q145 83 145 100 Q145 110 140 115 Q135 115 125 115 L78 115 Z" fill="url(#silverGradReceipt)"/>
+                
+                {/* Add subtle highlight on B for 3D effect */}
+                <path d="M80 57 L80 113 L85 113 L85 57 Z" fill="currentColor" opacity="0.4"/>
+                <path d="M80 57 L115 57 Q120 57 120 62 Q120 65 118 67 L80 67 Z" fill="currentColor" opacity="0.3"/>
+                <path d="M80 85 L127 85 Q135 85 135 93 Q135 100 130 103 L80 103 Z" fill="currentColor" opacity="0.3"/>
+                
+                {/* Camera lens outer circle */}
+                <circle cx="115" cy="100" r="10" fill="none" stroke="url(#silverGradReceipt)" strokeWidth="2"/>
+                
+                {/* Camera lens inner circle */}
+                <circle cx="115" cy="100" r="6" fill="url(#blueGradReceipt)"/>
+                
+                {/* Camera lens center */}
+                <circle cx="115" cy="100" r="3" fill="currentColor"/>
+                
+                {/* Network elements */}
+                <circle cx="95" cy="63" r="2" fill="currentColor" opacity="0.8"/>
+                <circle cx="102" cy="61" r="1.5" fill="currentColor" opacity="0.6"/>
+                <circle cx="107" cy="64" r="1.5" fill="currentColor" opacity="0.6"/>
+                <circle cx="104" cy="69" r="1.5" fill="currentColor" opacity="0.6"/>
+                
+                {/* Connection lines for network */}
+                <line x1="95" y1="63" x2="102" y2="61" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
+                <line x1="102" y1="61" x2="107" y2="64" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
+                <line x1="107" y1="64" x2="104" y2="69" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
+                <line x1="104" y1="69" x2="95" y2="63" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-blue-600 mb-2">
