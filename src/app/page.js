@@ -251,19 +251,11 @@ export default function LababilSalesApp() {
             <div className="flex items-center">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-lg mr-3 flex items-center justify-center">
                 {/* Lababil Solution Logo SVG */}
-                <svg width="24" height="24" viewBox="0 0 24 24" className="text-white">
-                  {/* L Shape */}
-                  <rect x="2" y="4" width="3" height="12" fill="currentColor"/>
-                  <rect x="2" y="13" width="6" height="3" fill="currentColor"/>
-                  {/* B Shape with camera lens */}
-                  <rect x="10" y="4" width="3" height="12" fill="currentColor"/>
-                  <rect x="10" y="4" width="6" height="3" fill="currentColor"/>
-                  <rect x="10" y="9" width="5" height="2" fill="currentColor"/>
-                  <rect x="10" y="13" width="6" height="3" fill="currentColor"/>
-                  {/* Camera lens circle */}
-                  <circle cx="19" cy="10" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-                  <circle cx="19" cy="10" r="1" fill="currentColor"/>
-                </svg>
+                <img 
+                  src="src/components/logo-128x128.png" 
+                  alt="Lababil Solution Logo" 
+                  className="w-6 h-6 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Lababil Solution</h1>
