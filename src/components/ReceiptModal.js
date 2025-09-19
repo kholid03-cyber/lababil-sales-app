@@ -41,11 +41,19 @@ export default function ReceiptModal({
           <div className="text-center mb-8 pb-6 border-b-2 border-blue-600">
             {/* Company Logo */}
             <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-              <img 
-                src="src/components/logo-128x128.png" 
-                alt="Lababil Solution Logo" 
-                className="w-6 h-6 object-contain"
-              />
+              <svg width="32" height="32" viewBox="0 0 32 32" className="text-white">
+                {/* L Shape */}
+                <rect x="3" y="6" width="4" height="16" fill="currentColor"/>
+                <rect x="3" y="18" width="8" height="4" fill="currentColor"/>
+                {/* B Shape with camera lens */}
+                <rect x="14" y="6" width="4" height="16" fill="currentColor"/>
+                <rect x="14" y="6" width="8" height="4" fill="currentColor"/>
+                <rect x="14" y="12" width="6" height="3" fill="currentColor"/>
+                <rect x="14" y="18" width="8" height="4" fill="currentColor"/>
+                {/* Camera lens circle */}
+                <circle cx="26" cy="14" r="3" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="26" cy="14" r="1.5" fill="currentColor"/>
+              </svg>
             </div>
             <h1 className="text-2xl font-bold text-blue-600 mb-2">
               {companyInfo.companyName}
