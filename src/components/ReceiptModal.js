@@ -39,6 +39,14 @@ export default function ReceiptModal({
         <div className="p-6">
           {/* Company Header */}
           <div className="text-center mb-8 pb-6 border-b-2 border-blue-600">
+            {/* Company Logo */}
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+              <img 
+                src="src/components/logo-128x128.png" 
+                alt="Lababil Solution Logo" 
+                className="w-6 h-6 object-contain"
+              />
+            </div>
             <h1 className="text-2xl font-bold text-blue-600 mb-2">
               {companyInfo.companyName}
             </h1>
@@ -48,7 +56,7 @@ export default function ReceiptModal({
             </p>
             <p className="text-sm text-gray-600">Website: {companyInfo.website}</p>
             
-            <h2 className="text-xl font-bold mt-4 text-gray-900">INVOICE</h2>
+            <h2 className="text-xl font-bold mt-4 text-gray-900">RECEIPT / KWITANSI</h2>
             <p className="text-sm text-gray-600">No. Receipt: #{sale.id}</p>
           </div>
 
