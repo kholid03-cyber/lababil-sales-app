@@ -154,12 +154,19 @@ Setelah deploy berhasil, aplikasi akan dapat diakses di:
 
 ## 📱 Features yang Tersedia
 
-✅ Dashboard penjualan  
-✅ Manajemen produk  
-✅ Recording penjualan  
-✅ Search & filter  
-✅ Responsive design  
+✅ Dashboard penjualan dengan statistik real-time  
+✅ Manajemen produk (CRUD operations)  
+✅ Recording penjualan dengan customer info  
+✅ Search & filter untuk produk dan penjualan  
+✅ **Print receipt individual untuk setiap transaksi** 🖨️  
+✅ **Print laporan penjualan lengkap** 📊  
+✅ **Download receipt dan laporan sebagai HTML** 💾  
+✅ Preview modal sebelum print  
+✅ Responsive design untuk desktop dan mobile  
 ✅ Format mata uang IDR  
+✅ Firebase integration untuk data persistent  
+✅ Real-time sync antar device  
+✅ Error handling dan loading states  
 
 ## 🛠 Troubleshooting
 
