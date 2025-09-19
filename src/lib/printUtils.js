@@ -332,7 +332,7 @@ export const generateReceiptHTML = (sale, companyInfo = {}) => {
                 <div class="company-info">Telp: ${phone} | Email: ${email}</div>
                 <div class="company-info">Website: ${website}</div>
                 
-                <div class="receipt-title">RECEIPT / KWITANSI</div>
+                <div class="receipt-title">INVOICE</div>
                 <div class="receipt-number">No. Receipt: #${sale.id}</div>
             </div>
             
