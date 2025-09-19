@@ -48,7 +48,7 @@ export default function ReceiptModal({
             </p>
             <p className="text-sm text-gray-600">Website: {companyInfo.website}</p>
             
-            <h2 className="text-xl font-bold mt-4 text-gray-900">RECEIPT / KWITANSI</h2>
+            <h2 className="text-xl font-bold mt-4 text-gray-900">INVOICE</h2>
             <p className="text-sm text-gray-600">No. Receipt: #{sale.id}</p>
           </div>
 
