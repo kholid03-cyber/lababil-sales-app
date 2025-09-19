@@ -32,10 +32,10 @@ export default function LababilSalesApp() {
   // Company info for receipts
   const companyInfo = {
     companyName: 'Lababil Solution',
-    address: 'Jambi, Indonesia',
-    phone: '+62 899-7499-994, +62 823-1223-5675',
-    email: 'lababil2307@gmail.com',
-    website: 'www.lababil.biz.id'
+    address: 'Jakarta, Indonesia',
+    phone: '+62 21-1234-5678',
+    email: 'info@lababilsolution.com',
+    website: 'www.lababilsolution.com'
   };
 
   // Load data from Firebase on component mount
@@ -249,17 +249,43 @@ export default function LababilSalesApp() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
-                <ShoppingCart className="h-6 w-6" />
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-lg mr-3 flex items-center justify-center">
+                {/* Lababil Solution Logo SVG */}
+                <svg width="24" height="24" viewBox="0 0 24 24" className="text-white">
+                  {/* L Shape */}
+                  <rect x="2" y="4" width="3" height="12" fill="currentColor"/>
+                  <rect x="2" y="13" width="6" height="3" fill="currentColor"/>
+                  {/* B Shape with camera lens */}
+                  <rect x="10" y="4" width="3" height="12" fill="currentColor"/>
+                  <rect x="10" y="4" width="6" height="3" fill="currentColor"/>
+                  <rect x="10" y="9" width="5" height="2" fill="currentColor"/>
+                  <rect x="10" y="13" width="6" height="3" fill="currentColor"/>
+                  {/* Camera lens circle */}
+                  <circle cx="19" cy="10" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                  <circle cx="19" cy="10" r="1" fill="currentColor"/>
+                </svg>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Lababil Solution</h1>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Lababil Solution</h1>
+                <p className="text-xs text-gray-500 -mt-1">Digital Sales System</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               {loading && (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
               )}
-              <div className="text-sm text-gray-500">
-                Sistem Penjualan Digital
+              <div className="text-right">
+                <div className="text-sm font-medium text-gray-900">
+                  {new Date().toLocaleDateString('id-ID', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Sistem Penjualan Digital v2.0
+                </div>
               </div>
             </div>
           </div>
