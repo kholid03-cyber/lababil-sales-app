@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Package, TrendingUp, Users, Plus, Edit, Trash2, Search, DollarSign, Calendar, BarChart3 } from 'lucide-react';
+import { ShoppingCart, Package, TrendingUp, Users, Plus, Edit, Trash2, Search, DollarSign, Calendar, BarChart3, Printer, Download, FileText } from 'lucide-react';
 import { 
   getProducts, 
   addProduct, 
@@ -11,6 +11,9 @@ import {
   deleteSale,
   getProductById
 } from '../lib/firebaseOperations';
+import { printReceipt, downloadReceiptPDF } from '../lib/printUtils';
+import { printSalesReport, downloadSalesReport } from '../lib/salesReportUtils';
+import ReceiptModal from '../components/ReceiptModal';
 
 export default function LababilSalesApp() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,6 +26,17 @@ export default function LababilSalesApp() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
+
+  // Company info for receipts
+  const companyInfo = {
+    companyName: 'Lababil Solution',
+    address: 'Jakarta, Indonesia',
+    phone: '+62 21-1234-5678',
+    email: 'info@lababilsolution.com',
+    website: 'www.lababilsolution.com'
+  };
 
   // Load data from Firebase on component mount
   useEffect(() => {
@@ -156,6 +170,34 @@ export default function LababilSalesApp() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle print receipt
+  const handlePrintReceipt = (sale) => {
+    setSelectedSale(sale);
+    setShowReceiptModal(true);
+  };
+
+  // Handle direct print (quick print)
+  const handleQuickPrint = (sale) => {
+    printReceipt(sale, companyInfo);
+  };
+
+  // Handle download receipt
+  const handleDownloadReceipt = (sale) => {
+    downloadReceiptPDF(sale, companyInfo);
+  };
+
+  // Handle print sales report
+  const handlePrintSalesReport = () => {
+    const dateRange = `Periode: ${new Date().toLocaleDateString('id-ID')}`;
+    printSalesReport(filteredSales, dateRange, companyInfo);
+  };
+
+  // Handle download sales report
+  const handleDownloadSalesReport = () => {
+    const dateRange = `Periode: ${new Date().toLocaleDateString('id-ID')}`;
+    downloadSalesReport(filteredSales, dateRange, companyInfo);
   };
 
   // Open modal
@@ -316,9 +358,18 @@ export default function LababilSalesApp() {
                         <p className="font-medium text-gray-900">{sale.productName}</p>
                         <p className="text-sm text-gray-600">{sale.customer}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">{formatCurrency(sale.total)}</p>
-                        <p className="text-sm text-gray-600">{sale.date}</p>
+                      <div className="flex items-center space-x-3">
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">{formatCurrency(sale.total)}</p>
+                          <p className="text-sm text-gray-600">{sale.date}</p>
+                        </div>
+                        <button
+                          onClick={() => handlePrintReceipt(sale)}
+                          className="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50"
+                          title="Print Receipt"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -406,7 +457,7 @@ export default function LababilSalesApp() {
         {/* Sales Tab */}
         {activeTab === 'sales' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -419,13 +470,29 @@ export default function LababilSalesApp() {
                   />
                 </div>
               </div>
-              <button
-                onClick={() => openModal('sale')}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Tambah Penjualan
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={handlePrintSalesReport}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center"
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print Laporan
+                </button>
+                <button
+                  onClick={handleDownloadSalesReport}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Laporan
+                </button>
+                <button
+                  onClick={() => openModal('sale')}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tambah Penjualan
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -459,12 +526,29 @@ export default function LababilSalesApp() {
                         {sale.date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleDelete('sale', sale.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handlePrintReceipt(sale)}
+                            className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
+                            title="Print Receipt"
+                          >
+                            <Printer className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownloadReceipt(sale)}
+                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50"
+                            title="Download Receipt"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete('sale', sale.id)}
+                            className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
+                            title="Delete Sale"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -581,6 +665,14 @@ export default function LababilSalesApp() {
           </div>
         </div>
       )}
+
+      {/* Receipt Modal */}
+      <ReceiptModal
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+        sale={selectedSale}
+        companyInfo={companyInfo}
+      />
     </div>
   );
 }
