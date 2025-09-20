@@ -24,6 +24,35 @@ export const formatTime = () => {
   return new Date().toLocaleTimeString('id-ID');
 };
 
+// Add logo to PDF
+const addLogoToPDF = (doc, x, y, width, height) => {
+  // Since jsPDF doesn't handle complex SVG well, we'll create a simple representation
+  // Blue gradient rectangle for L
+  doc.setFillColor(30, 64, 175); // Blue
+  doc.rect(x, y, width * 0.6, height, 'F'); // L vertical part
+  doc.rect(x, y + height * 0.7, width * 0.8, height * 0.3, 'F'); // L horizontal part
+  
+  // Silver/gray elements for B inside L
+  doc.setFillColor(107, 114, 128); // Gray
+  const bX = x + width * 0.15;
+  const bY = y + height * 0.1;
+  const bWidth = width * 0.4;
+  const bHeight = height * 0.6;
+  
+  // B vertical bar
+  doc.rect(bX, bY, bWidth * 0.25, bHeight, 'F');
+  // B top horizontal
+  doc.rect(bX, bY, bWidth * 0.7, bHeight * 0.25, 'F');
+  // B middle horizontal
+  doc.rect(bX, bY + bHeight * 0.4, bWidth * 0.6, bHeight * 0.2, 'F');
+  // B bottom horizontal
+  doc.rect(bX, bY + bHeight * 0.75, bWidth * 0.7, bHeight * 0.25, 'F');
+  
+  // Camera lens (circle)
+  doc.setFillColor(59, 130, 246); // Light blue
+  doc.circle(bX + bWidth * 0.6, bY + bHeight * 0.7, width * 0.05, 'F');
+};
+
 // Generate PDF receipt
 export const generateReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
   const doc = new jsPDF();
@@ -33,6 +62,11 @@ export const generateReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
 
   // Set font
   doc.setFont('helvetica');
+
+  // Add Logo
+  addLogoToPDF(doc, pageWidth / 2 - 15, yPosition - 10, 30, 20);
+  
+  yPosition += 25;
 
   // Header - Company Info
   doc.setFontSize(20);
@@ -177,15 +211,15 @@ export const generateReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
   yPosition += 30;
   doc.setFontSize(12);
   doc.setTextColor(59, 130, 246);
-  doc.text('Thank You for Your Trust!', pageWidth / 2, yPosition, { align: 'center' });
+  doc.text('Terima Kasih atas Kepercayaan Anda!', pageWidth / 2, yPosition, { align: 'center' });
   
   yPosition += 8;
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
-  doc.text('For further questions about this service, please contact us.', pageWidth / 2, yPosition, { align: 'center' });
+  doc.text('Untuk pertanyaan lebih lanjut mengenai layanan ini, silakan hubungi kami.', pageWidth / 2, yPosition, { align: 'center' });
   
   yPosition += 6;
-  doc.text('All services are protected by warranty according to applicable terms.', pageWidth / 2, yPosition, { align: 'center' });
+  doc.text('Semua layanan dilindungi garansi sesuai dengan ketentuan yang berlaku.', pageWidth / 2, yPosition, { align: 'center' });
 
   return doc;
 };
@@ -235,28 +269,23 @@ export const printReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
   }
 };
 
-// Keep existing HTML receipt function for backup/alternative printing
+// Keep existing functions for compatibility
 export const printReceipt = (sale, companyInfo) => {
-  // Use PDF print as primary method
   return printReceiptPDF(sale, companyInfo);
 };
 
-// Keep HTML download as backup option  
 export const downloadReceiptHTML = async (sale, companyInfo) => {
   const receiptHTML = generateReceiptHTML(sale, companyInfo);
   
   try {
-    // Create blob from HTML
     const blob = new Blob([receiptHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     
-    // Create download link
     const link = document.createElement('a');
     link.href = url;
     link.download = `receipt-${sale.id}-${sale.date}.html`;
     link.click();
     
-    // Cleanup
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Error downloading receipt:', error);
@@ -264,16 +293,66 @@ export const downloadReceiptHTML = async (sale, companyInfo) => {
   }
 };
 
-// Generate HTML receipt (for preview/backup)
+// Generate HTML receipt with logo
 const generateReceiptHTML = (sale, companyInfo = {}) => {
   const {
     companyName = 'Lababil Solution',
-    address = 'Jakarta, Indonesia',
-    phone = '+62 21-1234-5678',
-    email = 'info@lababilsolution.com',
-    website = 'www.lababilsolution.com',
+    address = 'Jambi, Indonesia',
+    phone = '+62 823-1223-5675, +62 899-7499-994',
+    email = 'lababil2307@gmail.com',
+    website = 'www.lababil.biz.id',
     bankAccount = 'BCA 7870598488 a/n A KHOLID'
   } = companyInfo;
+
+  // Updated Lababil Solution logo - L containing B design
+  const companyLogo = `data:image/svg+xml;base64,${btoa(`
+    <svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blueGradPrint" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+          <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.6" />
+        </linearGradient>
+        
+        <linearGradient id="silverGradPrint" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#6b7280;stop-opacity:0.9" />
+          <stop offset="50%" style="stop-color:#9ca3af;stop-opacity:0.7" />
+          <stop offset="100%" style="stop-color:#9ca3af;stop-opacity:0.5" />
+        </linearGradient>
+      </defs>
+      
+      <!-- Letter L (3D Blue) - Outer structure -->
+      <path d="M50 50 L50 150 L150 150 L150 130 L70 130 L70 50 Z" fill="url(#blueGradPrint)" stroke="#1e40af" stroke-width="1"/>
+      
+      <!-- Letter B (3D Silver) - Inside the L -->
+      <path d="M78 55 L78 115 L98 115 L98 55 Z" fill="url(#silverGradPrint)"/>
+      <path d="M78 55 L118 55 Q125 55 125 65 Q125 72 120 75 Q115 77 110 77 L78 77 Z" fill="url(#silverGradPrint)"/>
+      <path d="M78 77 L108 77 L108 83 L78 83 Z" fill="url(#silverGradPrint)"/>
+      <path d="M78 83 L130 83 Q145 83 145 100 Q145 110 140 115 Q135 115 125 115 L78 115 Z" fill="url(#silverGradPrint)"/>
+      <path d="M80 57 L80 113 L85 113 L85 57 Z" fill="#e5e7eb" opacity="0.7"/>
+      <path d="M80 57 L115 57 Q120 57 120 62 Q120 65 118 67 L80 67 Z" fill="#e5e7eb" opacity="0.5"/>
+      <path d="M80 85 L127 85 Q135 85 135 93 Q135 100 130 103 L80 103 Z" fill="#e5e7eb" opacity="0.5"/>
+      
+      <!-- Camera lens -->
+      <circle cx="115" cy="100" r="10" fill="none" stroke="url(#silverGradPrint)" stroke-width="2"/>
+      <circle cx="115" cy="100" r="6" fill="url(#blueGradPrint)"/>
+      <circle cx="115" cy="100" r="3" fill="#1e40af"/>
+      
+      <!-- Network elements -->
+      <circle cx="95" cy="63" r="2" fill="#3b82f6" opacity="0.8"/>
+      <circle cx="102" cy="61" r="1.5" fill="#3b82f6" opacity="0.6"/>
+      <circle cx="107" cy="64" r="1.5" fill="#3b82f6" opacity="0.6"/>
+      <circle cx="104" cy="69" r="1.5" fill="#3b82f6" opacity="0.6"/>
+      <line x1="95" y1="63" x2="102" y2="61" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+      <line x1="102" y1="61" x2="107" y2="64" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+      <line x1="107" y1="64" x2="104" y2="69" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+      <line x1="104" y1="69" x2="95" y2="63" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+      
+      <!-- Text -->
+      <text x="50" y="200" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1e40af">LABABIL</text>
+      <text x="50" y="225" font-family="Arial, sans-serif" font-size="18" font-weight="normal" fill="#6b7280">solution</text>
+    </svg>
+  `)}`;
 
   return `
     <!DOCTYPE html>
@@ -287,6 +366,7 @@ const generateReceiptHTML = (sale, companyInfo = {}) => {
             body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333; }
             .receipt-container { max-width: 800px; margin: 0 auto; padding: 20px; border: 2px solid #e5e7eb; }
             .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #3b82f6; }
+            .company-logo { width: 80px; height: 60px; margin: 0 auto 15px auto; background-image: url('${companyLogo}'); background-repeat: no-repeat; background-size: contain; background-position: center; }
             .company-name { font-size: 28px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
             .receipt-title { font-size: 24px; font-weight: bold; margin: 20px 0 10px 0; }
             .total-section { margin-top: 30px; padding: 20px; background-color: #f0f9ff; border: 2px solid #3b82f6; }
@@ -301,6 +381,7 @@ const generateReceiptHTML = (sale, companyInfo = {}) => {
     <body>
         <div class="receipt-container">
             <div class="header">
+                <div class="company-logo"></div>
                 <div class="company-name">${companyName}</div>
                 <div>${address}</div>
                 <div>Telp: ${phone} | Email: ${email}</div>
@@ -355,8 +436,8 @@ const generateReceiptHTML = (sale, companyInfo = {}) => {
             </div>
             
             <div style="text-align: center; margin-top: 40px;">
-                <p><strong>Thank You for Your Business!</strong></p>
-                <p>For questions about this service, please contact us.</p>
+                <p><strong>Terima Kasih atas Kepercayaan Anda!</strong></p>
+                <p>Untuk pertanyaan lebih lanjut mengenai layanan ini, silakan hubungi kami.</p>
             </div>
         </div>
     </body>
