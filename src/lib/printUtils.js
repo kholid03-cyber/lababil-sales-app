@@ -1,5 +1,7 @@
-// Print utility functions for sales receipts
+import jsPDF from 'jspdf';
+import { COMPANY_INFO } from './constants';
 
+// Format currency helper
 export const formatCurrency = (amount) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -7,6 +9,7 @@ export const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+// Format date helper
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('id-ID', {
@@ -21,448 +24,225 @@ export const formatTime = () => {
   return new Date().toLocaleTimeString('id-ID');
 };
 
-export const generateReceiptHTML = (sale, companyInfo = {}) => {
-  const {
-    companyName = 'Lababil Solution',
-    address = 'Jakarta, Indonesia',
-    phone = '+62 21-1234-5678',
-    email = 'info@lababilsolution.com',
-    website = 'www.lababilsolution.com'
-  } = companyInfo;
+// Generate PDF receipt
+export const generateReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  let yPosition = 30;
 
-  // Updated Lababil Solution logo - L containing B design
-  const companyLogo = `data:image/svg+xml;base64,${btoa(`
-    <svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="blueGradPrint" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
-          <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:0.8" />
-          <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.6" />
-        </linearGradient>
-        
-        <linearGradient id="silverGradPrint" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#6b7280;stop-opacity:0.9" />
-          <stop offset="50%" style="stop-color:#9ca3af;stop-opacity:0.7" />
-          <stop offset="100%" style="stop-color:#9ca3af;stop-opacity:0.5" />
-        </linearGradient>
-      </defs>
-      
-      <!-- Letter L (3D Blue) - Outer structure -->
-      <path d="M50 50 L50 150 L150 150 L150 130 L70 130 L70 50 Z" fill="url(#blueGradPrint)" stroke="#1e40af" stroke-width="1"/>
-      
-      <!-- Letter B (3D Silver) - Inside the L -->
-      <!-- Main vertical bar of B -->
-      <path d="M78 55 L78 115 L98 115 L98 55 Z" fill="url(#silverGradPrint)"/>
-      
-      <!-- Top horizontal section of B -->
-      <path d="M78 55 L118 55 Q125 55 125 65 Q125 72 120 75 Q115 77 110 77 L78 77 Z" fill="url(#silverGradPrint)"/>
-      
-      <!-- Middle divider -->
-      <path d="M78 77 L108 77 L108 83 L78 83 Z" fill="url(#silverGradPrint)"/>
-      
-      <!-- Bottom horizontal section of B -->
-      <path d="M78 83 L130 83 Q145 83 145 100 Q145 110 140 115 Q135 115 125 115 L78 115 Z" fill="url(#silverGradPrint)"/>
-      
-      <!-- Add subtle highlight on B for 3D effect -->
-      <path d="M80 57 L80 113 L85 113 L85 57 Z" fill="#e5e7eb" opacity="0.7"/>
-      <path d="M80 57 L115 57 Q120 57 120 62 Q120 65 118 67 L80 67 Z" fill="#e5e7eb" opacity="0.5"/>
-      <path d="M80 85 L127 85 Q135 85 135 93 Q135 100 130 103 L80 103 Z" fill="#e5e7eb" opacity="0.5"/>
-      
-      <!-- Camera lens outer circle -->
-      <circle cx="115" cy="100" r="10" fill="none" stroke="url(#silverGradPrint)" stroke-width="2"/>
-      
-      <!-- Camera lens inner circle -->
-      <circle cx="115" cy="100" r="6" fill="url(#blueGradPrint)"/>
-      
-      <!-- Camera lens center -->
-      <circle cx="115" cy="100" r="3" fill="#1e40af"/>
-      
-      <!-- Network elements -->
-      <circle cx="95" cy="63" r="2" fill="#3b82f6" opacity="0.8"/>
-      <circle cx="102" cy="61" r="1.5" fill="#3b82f6" opacity="0.6"/>
-      <circle cx="107" cy="64" r="1.5" fill="#3b82f6" opacity="0.6"/>
-      <circle cx="104" cy="69" r="1.5" fill="#3b82f6" opacity="0.6"/>
-      
-      <!-- Connection lines for network -->
-      <line x1="95" y1="63" x2="102" y2="61" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
-      <line x1="102" y1="61" x2="107" y2="64" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
-      <line x1="107" y1="64" x2="104" y2="69" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
-      <line x1="104" y1="69" x2="95" y2="63" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
-      
-      <!-- Text -->
-      <text x="50" y="200" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1e40af">LABABIL</text>
-      <text x="50" y="225" font-family="Arial, sans-serif" font-size="18" font-weight="normal" fill="#6b7280">solution</text>
-    </svg>
-  `)}`;
+  // Set font
+  doc.setFont('helvetica');
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Receipt - ${sale.id}</title>
-        <style>
-            @page {
-                size: A4;
-                margin: 20mm;
-            }
-            
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            
-            body {
-                font-family: 'Arial', sans-serif;
-                font-size: 14px;
-                line-height: 1.5;
-                color: #333;
-                background: white;
-            }
-            
-            .receipt-container {
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 20px;
-                border: 2px solid #e5e7eb;
-                border-radius: 8px;
-            }
-            
-            .header {
-                text-align: center;
-                margin-bottom: 30px;
-                padding-bottom: 20px;
-                border-bottom: 2px solid #3b82f6;
-            }
-            
-            .company-logo {
-                width: 80px;
-                height: 60px;
-                margin: 0 auto 15px auto;
-                background-image: url('${companyLogo}');
-                background-repeat: no-repeat;
-                background-size: contain;
-                background-position: center;
-            }
-            
-            .company-name {
-                font-size: 28px;
-                font-weight: bold;
-                color: #1e40af;
-                margin-bottom: 10px;
-            }
-            
-            .company-info {
-                font-size: 12px;
-                color: #6b7280;
-                margin-bottom: 5px;
-            }
-            
-            .receipt-title {
-                font-size: 24px;
-                font-weight: bold;
-                margin: 20px 0 10px 0;
-                color: #1f2937;
-            }
-            
-            .receipt-number {
-                font-size: 14px;
-                color: #6b7280;
-                margin-bottom: 20px;
-            }
-            
-            .info-section {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 30px;
-                padding: 20px;
-                background-color: #f9fafb;
-                border-radius: 6px;
-            }
-            
-            .customer-info, .transaction-info {
-                flex: 1;
-            }
-            
-            .customer-info {
-                margin-right: 40px;
-            }
-            
-            .info-title {
-                font-weight: bold;
-                margin-bottom: 10px;
-                color: #374151;
-                font-size: 16px;
-            }
-            
-            .info-item {
-                margin-bottom: 8px;
-                display: flex;
-            }
-            
-            .info-label {
-                font-weight: 600;
-                width: 120px;
-                color: #6b7280;
-            }
-            
-            .info-value {
-                color: #1f2937;
-            }
-            
-            .items-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 30px;
-                border: 1px solid #e5e7eb;
-                border-radius: 6px;
-                overflow: hidden;
-            }
-            
-            .items-table th {
-                background-color: #3b82f6;
-                color: white;
-                padding: 15px;
-                text-align: left;
-                font-weight: 600;
-            }
-            
-            .items-table td {
-                padding: 15px;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            
-            .items-table tr:last-child td {
-                border-bottom: none;
-            }
-            
-            .items-table tr:nth-child(even) {
-                background-color: #f8fafc;
-            }
-            
-            .text-right {
-                text-align: right;
-            }
-            
-            .text-center {
-                text-align: center;
-            }
-            
-            .total-section {
-                margin-top: 30px;
-                padding: 20px;
-                background-color: #f0f9ff;
-                border: 2px solid #3b82f6;
-                border-radius: 8px;
-            }
-            
-            .total-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 10px;
-                font-size: 16px;
-            }
-            
-            .total-final {
-                font-size: 20px;
-                font-weight: bold;
-                color: #1e40af;
-                padding-top: 10px;
-                border-top: 2px solid #3b82f6;
-                margin-top: 15px;
-            }
-            
-            .footer {
-                margin-top: 40px;
-                padding-top: 20px;
-                border-top: 1px solid #e5e7eb;
-                text-align: center;
-            }
-            
-            .footer-logo {
-                width: 60px;
-                height: 45px;
-                margin: 10px auto;
-                background-image: url('${companyLogo}');
-                background-repeat: no-repeat;
-                background-size: contain;
-                background-position: center;
-                opacity: 0.7;
-            }
-            
-            .thank-you {
-                font-size: 18px;
-                font-weight: bold;
-                color: #1e40af;
-                margin-bottom: 10px;
-            }
-            
-            .footer-note {
-                font-size: 12px;
-                color: #6b7280;
-                margin-bottom: 20px;
-            }
-            
-            .print-info {
-                font-size: 10px;
-                color: #9ca3af;
-                margin-top: 20px;
-            }
-            
-            @media print {
-                .receipt-container {
-                    border: none;
-                    box-shadow: none;
-                }
-                
-                .print-info {
-                    display: none;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="receipt-container">
-            <!-- Header -->
-            <div class="header">
-                <div class="company-logo"></div>
-                <div class="company-name">${companyName}</div>
-                <div class="company-info">${address}</div>
-                <div class="company-info">Telp: ${phone} | Email: ${email}</div>
-                <div class="company-info">Website: ${website}</div>
-                
-                <div class="receipt-title">INVOICE</div>
-                <div class="receipt-number">No. Receipt: #${sale.id}</div>
-            </div>
-            
-            <!-- Customer and Transaction Info -->
-            <div class="info-section">
-                <div class="customer-info">
-                    <div class="info-title">Informasi Customer:</div>
-                    <div class="info-item">
-                        <span class="info-label">Nama:</span>
-                        <span class="info-value">${sale.customer}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Email:</span>
-                        <span class="info-value">${sale.customerEmail || '-'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Telepon:</span>
-                        <span class="info-value">${sale.customerPhone || '-'}</span>
-                    </div>
-                </div>
-                
-                <div class="transaction-info">
-                    <div class="info-title">Informasi Transaksi:</div>
-                    <div class="info-item">
-                        <span class="info-label">Tanggal:</span>
-                        <span class="info-value">${formatDate(sale.date)}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Waktu Print:</span>
-                        <span class="info-value">${formatTime()}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Status:</span>
-                        <span class="info-value">${sale.status || 'Completed'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Payment:</span>
-                        <span class="info-value">${sale.paymentMethod || 'Bank Transfer'}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Items Table -->
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Deskripsi Layanan/Produk</th>
-                        <th class="text-center">Qty</th>
-                        <th class="text-right">Harga Satuan</th>
-                        <th class="text-right">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="text-center">1</td>
-                        <td>
-                            <strong>${sale.productName}</strong>
-                            ${sale.notes ? `<br><small style="color: #6b7280;">${sale.notes}</small>` : ''}
-                        </td>
-                        <td class="text-center">${sale.quantity}</td>
-                        <td class="text-right">${formatCurrency(sale.total / sale.quantity)}</td>
-                        <td class="text-right"><strong>${formatCurrency(sale.total)}</strong></td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <!-- Total Section -->
-            <div class="total-section">
-                <div class="total-row">
-                    <span>Subtotal:</span>
-                    <span>${formatCurrency(sale.total)}</span>
-                </div>
-                <div class="total-row">
-                    <span>PPN (11%):</span>
-                    <span>${formatCurrency(sale.total * 0.11)}</span>
-                </div>
-                <div class="total-row total-final">
-                    <span>TOTAL PEMBAYARAN:</span>
-                    <span>${formatCurrency(sale.total * 1.11)}</span>
-                </div>
-            </div>
-            
-            <!-- Footer -->
-            <div class="footer">
-                <div class="footer-logo"></div>
-                <div class="thank-you">Terima Kasih atas Kepercayaan Anda!</div>
-                <div class="footer-note">
-                    Untuk pertanyaan lebih lanjut mengenai layanan ini, silakan hubungi kami.<br>
-                    Semua layanan dilindungi garansi sesuai dengan ketentuan yang berlaku.
-                </div>
-                
-                <div class="print-info">
-                    Dokumen ini dicetak secara otomatis pada ${new Date().toLocaleString('id-ID')}<br>
-                    Powered by Lababil Solution Sales System
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-  `;
+  // Header - Company Info
+  doc.setFontSize(20);
+  doc.setTextColor(30, 64, 175); // Blue color
+  doc.text(companyInfo.companyName, pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 10;
+  doc.setFontSize(12);
+  doc.setTextColor(100, 100, 100);
+  doc.text(companyInfo.address, pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 8;
+  doc.text(`Telp: ${companyInfo.phone} | Email: ${companyInfo.email}`, pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 8;
+  doc.text(`Website: ${companyInfo.website}`, pageWidth / 2, yPosition, { align: 'center' });
+
+  yPosition += 8;
+  doc.text(`Rekening: ${companyInfo.bankAccount}`, pageWidth / 2, yPosition, { align: 'center' });
+
+  // Receipt title
+  yPosition += 20;
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text('INVOICE / KWITANSI', pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 10;
+  doc.setFontSize(12);
+  doc.text(`No. Receipt: #${sale.id}`, pageWidth / 2, yPosition, { align: 'center' });
+
+  // Line separator
+  yPosition += 15;
+  doc.setDrawColor(59, 130, 246);
+  doc.setLineWidth(1);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+  // Customer Info
+  yPosition += 15;
+  doc.setFontSize(14);
+  doc.setTextColor(0, 0, 0);
+  doc.text('Customer Information:', margin, yPosition);
+  
+  yPosition += 10;
+  doc.setFontSize(12);
+  doc.text(`Name: ${sale.customer}`, margin, yPosition);
+  
+  yPosition += 8;
+  doc.text(`Email: ${sale.customerEmail || '-'}`, margin, yPosition);
+  
+  yPosition += 8;
+  doc.text(`Phone: ${sale.customerPhone || '-'}`, margin, yPosition);
+
+  // Transaction Info
+  yPosition += 15;
+  doc.setFontSize(14);
+  doc.text('Transaction Information:', margin, yPosition);
+  
+  yPosition += 10;
+  doc.setFontSize(12);
+  doc.text(`Date: ${formatDate(sale.date)}`, margin, yPosition);
+  
+  yPosition += 8;
+  doc.text(`Status: ${sale.status || 'Completed'}`, margin, yPosition);
+  
+  yPosition += 8;
+  doc.text(`Payment Method: ${sale.paymentMethod || 'Bank Transfer'}`, margin, yPosition);
+  
+  yPosition += 8;
+  doc.text(`Print Time: ${new Date().toLocaleString('id-ID')}`, margin, yPosition);
+
+  // Line separator
+  yPosition += 15;
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+  // Items table header
+  yPosition += 15;
+  doc.setFontSize(12);
+  doc.setFillColor(59, 130, 246);
+  doc.setTextColor(255, 255, 255);
+  doc.rect(margin, yPosition - 8, pageWidth - 2 * margin, 15, 'F');
+  
+  // Table headers
+  doc.text('No', margin + 5, yPosition);
+  doc.text('Description', margin + 25, yPosition);
+  doc.text('Qty', pageWidth - 80, yPosition);
+  doc.text('Unit Price', pageWidth - 60, yPosition);
+  doc.text('Total', pageWidth - 25, yPosition, { align: 'right' });
+
+  // Items
+  yPosition += 15;
+  doc.setTextColor(0, 0, 0);
+  doc.setFillColor(249, 250, 251);
+  doc.rect(margin, yPosition - 8, pageWidth - 2 * margin, 15, 'F');
+  
+  doc.text('1', margin + 5, yPosition);
+  
+  // Handle long product names
+  const productName = sale.productName;
+  if (productName.length > 30) {
+    const lines = doc.splitTextToSize(productName, 80);
+    doc.text(lines, margin + 25, yPosition - 3);
+    yPosition += (lines.length - 1) * 5;
+  } else {
+    doc.text(productName, margin + 25, yPosition);
+  }
+  
+  doc.text(sale.quantity.toString(), pageWidth - 80, yPosition);
+  doc.text(formatCurrency(sale.total / sale.quantity), pageWidth - 60, yPosition);
+  doc.text(formatCurrency(sale.total), pageWidth - 25, yPosition, { align: 'right' });
+
+  // Line separator
+  yPosition += 20;
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+  // Totals section
+  const subtotal = sale.total;
+  const tax = subtotal * 0.11; // 11% tax
+  const total = subtotal + tax;
+
+  yPosition += 15;
+  doc.setFillColor(240, 249, 255);
+  doc.rect(margin, yPosition - 10, pageWidth - 2 * margin, 40, 'F');
+  
+  // Subtotal
+  yPosition += 5;
+  doc.text('Subtotal:', pageWidth - 80, yPosition);
+  doc.text(formatCurrency(subtotal), pageWidth - 25, yPosition, { align: 'right' });
+
+  // Tax
+  yPosition += 8;
+  doc.text('Tax (11%):', pageWidth - 80, yPosition);
+  doc.text(formatCurrency(tax), pageWidth - 25, yPosition, { align: 'right' });
+
+  // Total
+  yPosition += 12;
+  doc.setFontSize(14);
+  doc.setTextColor(30, 64, 175);
+  doc.text('TOTAL:', pageWidth - 80, yPosition);
+  doc.text(formatCurrency(total), pageWidth - 25, yPosition, { align: 'right' });
+
+  // Footer
+  yPosition += 30;
+  doc.setFontSize(12);
+  doc.setTextColor(59, 130, 246);
+  doc.text('Thank You for Your Trust!', pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 8;
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text('For further questions about this service, please contact us.', pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition += 6;
+  doc.text('All services are protected by warranty according to applicable terms.', pageWidth / 2, yPosition, { align: 'center' });
+
+  return doc;
 };
 
-export const printReceipt = (sale, companyInfo) => {
-  const receiptHTML = generateReceiptHTML(sale, companyInfo);
-  
-  // Create a new window for printing
-  const printWindow = window.open('', '_blank');
-  
-  if (printWindow) {
-    printWindow.document.write(receiptHTML);
-    printWindow.document.close();
-    
-    // Wait for content to load then print
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        // Close window after printing
-        printWindow.onafterprint = () => {
-          printWindow.close();
-        };
-      }, 500);
-    };
-  } else {
-    // Fallback if popup blocked
-    alert('Pop-up diblokir! Silakan aktifkan pop-up untuk fitur print.');
+// Download PDF receipt
+export const downloadReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
+  try {
+    const doc = generateReceiptPDF(sale, companyInfo);
+    const filename = `receipt-${sale.id}-${sale.date}.pdf`;
+    doc.save(filename);
+    return true;
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Error generating PDF. Please try again.');
+    return false;
   }
 };
 
-export const downloadReceiptPDF = async (sale, companyInfo) => {
+// Print PDF receipt
+export const printReceiptPDF = (sale, companyInfo = COMPANY_INFO) => {
+  try {
+    const doc = generateReceiptPDF(sale, companyInfo);
+    
+    // Open PDF in new window for printing
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    
+    const printWindow = window.open(pdfUrl, '_blank');
+    if (printWindow) {
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.onafterprint = () => {
+            printWindow.close();
+            URL.revokeObjectURL(pdfUrl);
+          };
+        }, 500);
+      };
+    } else {
+      alert('Pop-up blocked! Please enable pop-ups for print functionality.');
+    }
+    return true;
+  } catch (error) {
+    console.error('Error printing PDF:', error);
+    alert('Error printing PDF. Please try again.');
+    return false;
+  }
+};
+
+// Keep existing HTML receipt function for backup/alternative printing
+export const printReceipt = (sale, companyInfo) => {
+  // Use PDF print as primary method
+  return printReceiptPDF(sale, companyInfo);
+};
+
+// Keep HTML download as backup option  
+export const downloadReceiptHTML = async (sale, companyInfo) => {
   const receiptHTML = generateReceiptHTML(sale, companyInfo);
   
   try {
@@ -482,4 +262,104 @@ export const downloadReceiptPDF = async (sale, companyInfo) => {
     console.error('Error downloading receipt:', error);
     alert('Gagal download receipt. Silakan coba lagi.');
   }
+};
+
+// Generate HTML receipt (for preview/backup)
+const generateReceiptHTML = (sale, companyInfo = {}) => {
+  const {
+    companyName = 'Lababil Solution',
+    address = 'Jakarta, Indonesia',
+    phone = '+62 21-1234-5678',
+    email = 'info@lababilsolution.com',
+    website = 'www.lababilsolution.com',
+    bankAccount = 'BCA 7870598488 a/n A KHOLID'
+  } = companyInfo;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Receipt - ${sale.id}</title>
+        <style>
+            @page { size: A4; margin: 20mm; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333; }
+            .receipt-container { max-width: 800px; margin: 0 auto; padding: 20px; border: 2px solid #e5e7eb; }
+            .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #3b82f6; }
+            .company-name { font-size: 28px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
+            .receipt-title { font-size: 24px; font-weight: bold; margin: 20px 0 10px 0; }
+            .total-section { margin-top: 30px; padding: 20px; background-color: #f0f9ff; border: 2px solid #3b82f6; }
+            .total-final { font-size: 20px; font-weight: bold; color: #1e40af; padding-top: 10px; border-top: 2px solid #3b82f6; margin-top: 15px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+            th { background-color: #3b82f6; color: white; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+        </style>
+    </head>
+    <body>
+        <div class="receipt-container">
+            <div class="header">
+                <div class="company-name">${companyName}</div>
+                <div>${address}</div>
+                <div>Telp: ${phone} | Email: ${email}</div>
+                <div>Website: ${website}</div>
+                <div>Rekening: ${bankAccount}</div>
+                <div class="receipt-title">INVOICE</div>
+                <div>No. Receipt: #${sale.id}</div>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <div><strong>Customer:</strong> ${sale.customer}</div>
+                <div><strong>Email:</strong> ${sale.customerEmail || '-'}</div>
+                <div><strong>Phone:</strong> ${sale.customerPhone || '-'}</div>
+                <div><strong>Date:</strong> ${formatDate(sale.date)}</div>
+                <div><strong>Print Time:</strong> ${formatTime()}</div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Description</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center">1</td>
+                        <td><strong>${sale.productName}</strong></td>
+                        <td class="text-center">${sale.quantity}</td>
+                        <td class="text-right">${formatCurrency(sale.total / sale.quantity)}</td>
+                        <td class="text-right"><strong>${formatCurrency(sale.total)}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="total-section">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span>Subtotal:</span>
+                    <span>${formatCurrency(sale.total)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span>Tax (11%):</span>
+                    <span>${formatCurrency(sale.total * 0.11)}</span>
+                </div>
+                <div class="total-final" style="display: flex; justify-content: space-between;">
+                    <span>TOTAL:</span>
+                    <span>${formatCurrency(sale.total * 1.11)}</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <p><strong>Thank You for Your Business!</strong></p>
+                <p>For questions about this service, please contact us.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
 };
